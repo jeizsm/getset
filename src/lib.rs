@@ -51,13 +51,13 @@ fn main() {
 */
 
 extern crate proc_macro;
+#[macro_use]
 extern crate syn;
 #[macro_use]
 extern crate quote;
 extern crate proc_macro2;
 
 use proc_macro::TokenStream;
-use quote::Tokens;
 use syn::{DataStruct, DeriveInput, Meta};
 
 mod generate;
@@ -66,7 +66,7 @@ use generate::{GenMode, GenParams};
 #[proc_macro_derive(Getters, attributes(get))]
 pub fn getters(input: TokenStream) -> TokenStream {
     // Parse the string representation
-    let ast: DeriveInput = syn::parse(input).expect("Couldn't parse for getters");
+    let ast = parse_macro_input!(input as DeriveInput);
     let params = GenParams {
         attribute_name: "get",
         fn_name_prefix: "",
@@ -129,7 +129,7 @@ fn parse_global_attr(attrs: &[syn::Attribute], attribute_name: &str) -> Option<M
         }).last()
 }
 
-fn produce(ast: &DeriveInput, mode: &GenMode, params: &GenParams) -> Tokens {
+fn produce(ast: &DeriveInput, mode: &GenMode, params: &GenParams) -> proc_macro2::TokenStream {
     let name = &ast.ident;
     let generics = &ast.generics;
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
