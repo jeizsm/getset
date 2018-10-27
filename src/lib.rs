@@ -57,11 +57,13 @@ extern crate syn;
 extern crate quote;
 extern crate proc_macro2;
 
-use proc_macro::TokenStream;
-use syn::{DataStruct, DeriveInput, Meta};
-
 mod generate;
-use generate::{GenMode, GenParams};
+mod parse;
+mod types;
+
+use proc_macro::TokenStream;
+use syn::{DataStruct, DeriveInput};
+use types::{GenMode, GenParams};
 
 #[proc_macro_derive(Getters, attributes(get))]
 pub fn getters(input: TokenStream) -> TokenStream {
@@ -71,7 +73,7 @@ pub fn getters(input: TokenStream) -> TokenStream {
         attribute_name: "get",
         fn_name_prefix: "",
         fn_name_suffix: "",
-        global_attr: parse_global_attr(&ast.attrs, "get"),
+        global_attr: parse::global_attr(&ast.attrs, "get"),
     };
 
     // Build the impl
@@ -89,7 +91,7 @@ pub fn mut_getters(input: TokenStream) -> TokenStream {
         attribute_name: "get_mut",
         fn_name_prefix: "",
         fn_name_suffix: "_mut",
-        global_attr: parse_global_attr(&ast.attrs, "get_mut"),
+        global_attr: parse::global_attr(&ast.attrs, "get_mut"),
     };
 
     // Build the impl
@@ -106,7 +108,7 @@ pub fn setters(input: TokenStream) -> TokenStream {
         attribute_name: "set",
         fn_name_prefix: "set_",
         fn_name_suffix: "",
-        global_attr: parse_global_attr(&ast.attrs, "set"),
+        global_attr: parse::global_attr(&ast.attrs, "set"),
     };
 
     // Build the impl
@@ -114,19 +116,6 @@ pub fn setters(input: TokenStream) -> TokenStream {
 
     // Return the generated impl
     gen.into()
-}
-
-fn parse_global_attr(attrs: &[syn::Attribute], attribute_name: &str) -> Option<Meta> {
-    attrs
-        .iter()
-        .filter_map(|v| {
-            let (attr_name, meta) = generate::attr_tuple(v).expect("attribute");
-            if attr_name == attribute_name {
-                Some(meta)
-            } else {
-                None
-            }
-        }).last()
 }
 
 fn produce(ast: &DeriveInput, mode: &GenMode, params: &GenParams) -> proc_macro2::TokenStream {
