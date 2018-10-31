@@ -1,5 +1,5 @@
+use crate::types::{GenParams, MetaAttributes};
 use syn::*;
-use types::{GenParams, MetaAttributes};
 
 pub fn meta(meta: &Meta, params: &GenParams) -> MetaAttributes {
     let mut attributes = MetaAttributes {

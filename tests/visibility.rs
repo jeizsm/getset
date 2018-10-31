@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate getset;
 
-use submodule::another::other::Plain;
+use crate::submodule::another::other::Plain;
 // For testing `pub(in submodule)`
 mod submodule {
     // For testing `pub(in super)`
@@ -30,8 +30,8 @@ mod submodule {
                 super_accessible: usize,
 
                 /// A doc comment.
-                #[get(vis = "pub(in submodule)")]
-                #[set(vis = "pub(in submodule)")]
+                #[get(vis = "pub(in crate::submodule)")]
+                #[set(vis = "pub(in crate::submodule)")]
                 scope_accessible: usize,
             }
 

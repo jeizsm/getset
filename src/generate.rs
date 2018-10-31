@@ -1,7 +1,7 @@
-use parse;
+use crate::parse;
+use crate::types::{GenMode, GenParams};
 use proc_macro2::{Span, TokenStream};
 use syn::{Field, Ident, Visibility};
-use types::{GenMode, GenParams};
 
 pub fn implement(field: &Field, mode: &GenMode, params: &GenParams) -> TokenStream {
     let field_name = field

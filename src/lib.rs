@@ -61,9 +61,9 @@ mod generate;
 mod parse;
 mod types;
 
+use crate::types::{GenMode, GenParams};
 use proc_macro::TokenStream;
 use syn::{DataStruct, DeriveInput};
-use types::{GenMode, GenParams};
 
 #[proc_macro_derive(Getters, attributes(get))]
 pub fn getters(input: TokenStream) -> TokenStream {

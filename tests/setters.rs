@@ -8,7 +8,6 @@ pub struct Plain {
     second_field: usize,
 }
 
-
 #[derive(Setters, Default)]
 #[set(prefix = "ref_set_")]
 pub struct Custom {
