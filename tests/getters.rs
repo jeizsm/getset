@@ -8,10 +8,10 @@ pub struct Plain {
 }
 
 #[derive(Getters)]
-#[get(prefix = "get_")]
+#[get(prefix = "get")]
 pub struct Custom {
     field: usize,
-    #[get(prefix = "get_", suffix = "_test")]
+    #[get(prefix = "get", suffix = "test")]
     second_field: usize,
 }
 

@@ -1,118 +1,56 @@
 #[macro_use]
 extern crate getset;
 
-use crate::submodule::other::{Generic, Plain, Where};
+#[derive(MutGetters)]
+#[get_mut]
+pub struct Deprecated {
+    field: usize,
+}
 
-// For testing `pub(super)`
-mod submodule {
-    // For testing `pub(in super::other)`
-    pub mod other {
-        #[derive(MutGetters, Default)]
-        #[get_mut]
-        pub struct Plain {
-            /// A doc comment.
-            /// Multiple lines, even.
-            private_accessible: usize,
+#[derive(Getters)]
+#[get(mutable)]
+pub struct Plain {
+    field: usize,
+}
 
-            /// A doc comment.
-            #[get_mut = "pub"]
-            public_accessible: usize,
-            // /// A doc comment.
-            // #[get_mut = "pub(crate)"]
-            // crate_accessible: usize,
-
-            // /// A doc comment.
-            // #[get_mut = "pub(super)"]
-            // super_accessible: usize,
-
-            // /// A doc comment.
-            // #[get_mut = "pub(in super::other)"]
-            // scope_accessible: usize,
-        }
-
-        #[derive(MutGetters, Default)]
-        #[get_mut]
-        pub struct Generic<T: Copy + Clone + Default> {
-            /// A doc comment.
-            /// Multiple lines, even.
-            private_accessible: T,
-
-            /// A doc comment.
-            #[get_mut = "pub"]
-            public_accessible: T,
-            // /// A doc comment.
-            // #[get_mut = "pub(crate)"]
-            // crate_accessible: usize,
-
-            // /// A doc comment.
-            // #[get_mut = "pub(super)"]
-            // super_accessible: usize,
-
-            // /// A doc comment.
-            // #[get_mut = "pub(in super::other)"]
-            // scope_accessible: usize,
-        }
-
-        #[derive(MutGetters, Default)]
-        #[get_mut]
-        pub struct Where<T>
-        where
-            T: Copy + Clone + Default,
-        {
-            /// A doc comment.
-            /// Multiple lines, even.
-            private_accessible: T,
-
-            /// A doc comment.
-            #[get_mut = "pub"]
-            public_accessible: T,
-            // /// A doc comment.
-            // #[get_mut = "pub(crate)"]
-            // crate_accessible: usize,
-
-            // /// A doc comment.
-            // #[get_mut = "pub(super)"]
-            // super_accessible: usize,
-
-            // /// A doc comment.
-            // #[get_mut = "pub(in super::other)"]
-            // scope_accessible: usize,
-        }
-
-        #[test]
-        fn test_plain() {
-            let mut val = Plain::default();
-            (*val.private_accessible_mut()) += 1;
-        }
-
-        #[test]
-        fn test_generic() {
-            let mut val = Generic::<usize>::default();
-            (*val.private_accessible_mut()) += 1;
-        }
-
-        #[test]
-        fn test_where() {
-            let mut val = Where::<usize>::default();
-            (*val.private_accessible_mut()) += 1;
-        }
-    }
+#[derive(Getters)]
+#[get(suffix = "", mutable)]
+pub struct Custom {
+    field: usize,
+    #[get(mutable, prefix = "get", suffix = "test")]
+    second_field: usize,
 }
 
 #[test]
-fn test_plain() {
-    let mut val = Plain::default();
-    (*val.public_accessible_mut()) += 1;
+fn test_deprecated_mutable_getters() {
+    let mut val = Deprecated { field: 18 };
+    *val.field_mut() += 1;
+    assert_eq!(19, *val.field_mut());
 }
 
 #[test]
-fn test_generic() {
-    let mut val = Generic::<usize>::default();
-    (*val.public_accessible_mut()) += 1;
+fn test_mutable_getters() {
+    let mut val = Plain { field: 18 };
+    *val.field_mut() += 1;
+    assert_eq!(19, *val.field_mut());
 }
 
 #[test]
-fn test_where() {
-    let mut val = Where::<usize>::default();
-    (*val.public_accessible_mut()) += 1;
+fn test_custom_suffix() {
+    let mut val = Custom {
+        field: 20,
+        second_field: 20,
+    };
+    *val.field() += 1;
+    assert_eq!(21, *val.field());
+}
+
+#[test]
+fn test_custom_prefix_and_suffix() {
+    let mut val = Custom {
+        field: 20,
+        second_field: 20,
+    };
+    *val.get_second_field_test() += 1;
+    assert_eq!(21, *val.get_second_field_test());
 }

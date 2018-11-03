@@ -11,7 +11,7 @@ pub fn implement(field: &Field, mode: &GenMode, params: &GenParams) -> TokenStre
     let ty = field.ty.clone();
 
     let mut doc = Vec::new();
-    let attr = field
+    let mut attrs: Vec<_> = field
         .attrs
         .iter()
         .filter_map(|v| {
@@ -24,46 +24,63 @@ pub fn implement(field: &Field, mode: &GenMode, params: &GenParams) -> TokenStre
             } else {
                 None
             }
-        }).last()
-        .or_else(|| params.global_attr.clone())
-        .expect("attribute");
+        }).collect();
+    if attrs.is_empty() {
+        attrs = params.global_attr.clone();
+    }
+    let doc = &doc;
 
-    let attributes = parse::meta(&attr, params);
-    let visibility: Option<Visibility> = attributes
-        .vis
-        .map(|vis| syn::parse_str(vis.as_ref()).expect("visibility"));
-    let fn_name = Ident::new(
-        &format!("{}{}{}", attributes.prefix, field_name, attributes.suffix),
-        Span::call_site(),
-    );
-    match mode {
-        GenMode::Get => {
-            quote! {
-                #(#doc)*
-                #[inline(always)]
-                #visibility fn #fn_name(&self) -> &#ty {
-                    &self.#field_name
+    let token_stream: Vec<_> = attrs
+        .iter()
+        .map(|attr| {
+            let attributes = parse::meta(&attr, params);
+            let visibility: Option<Visibility> = attributes
+                .vis
+                .map(|vis| syn::parse_str(vis.as_ref()).expect("visibility"));
+            let fn_name = Ident::new(
+                &format!("{}{}{}", attributes.prefix.unwrap_or_default(), field_name, attributes.suffix.unwrap_or_default()),
+                Span::call_site(),
+            );
+            match mode {
+                GenMode::Get => {
+                    let (fn_type, fn_body) = if attributes.mutable {
+                        (
+                            quote! { (&mut self) -> &mut #ty },
+                            quote! { &mut self.#field_name },
+                        )
+                    } else {
+                        (quote! { (&self) -> &#ty }, quote! { &self.#field_name })
+                    };
+                    quote! {
+                        #(#doc)*
+                        #[inline(always)]
+                        #visibility fn #fn_name#fn_type {
+                            #fn_body
+                        }
+                    }
+                }
+                GenMode::Set => {
+                    quote! {
+                        #(#doc)*
+                        #[inline(always)]
+                        #visibility fn #fn_name(&mut self, val: #ty) -> &mut Self {
+                            self.#field_name = val;
+                            self
+                        }
+                    }
+                }
+                GenMode::GetMut => {
+                    quote! {
+                        #(#doc)*
+                        #[inline(always)]
+                        #visibility fn #fn_name(&mut self) -> &mut #ty {
+                            &mut self.#field_name
+                        }
+                    }
                 }
             }
-        }
-        GenMode::Set => {
-            quote! {
-                #(#doc)*
-                #[inline(always)]
-                #visibility fn #fn_name(&mut self, val: #ty) -> &mut Self {
-                    self.#field_name = val;
-                    self
-                }
-            }
-        }
-        GenMode::GetMut => {
-            quote! {
-                #(#doc)*
-                #[inline(always)]
-                #visibility fn #fn_name(&mut self) -> &mut #ty {
-                    &mut self.#field_name
-                }
-            }
-        }
+        }).collect();
+    quote! {
+        #(#token_stream)*
     }
 }

@@ -11,12 +11,12 @@ These macros are not intended to be used on fields which require custom logic in
 #[macro_use]
 extern crate getset;
 
-#[derive(Getters, Setters, MutGetters, Default)]
-#[get = "pub"] #[set = "pub"] #[get_mut = "pub"]
+#[derive(Getters, Setters, Default)]
+#[get = "pub"] #[set = "pub"] #[get(vis = "pub", mutable)]
 pub struct Foo<T> where T: Copy + Clone + Default {
     /// Doc comments are supported!
     /// Multiline, even.
-    #[get] #[set] #[get_mut]
+    #[get] #[get(mutable)] #[set]
     private: T,
 
     /// Doc comments are supported!
@@ -71,8 +71,8 @@ pub fn getters(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
     let params = GenParams {
         attribute_name: "get",
-        fn_name_prefix: "",
-        fn_name_suffix: "",
+        fn_name_prefix: None,
+        fn_name_suffix: None,
         global_attr: parse::global_attr(&ast.attrs, "get"),
     };
 
@@ -89,8 +89,8 @@ pub fn mut_getters(input: TokenStream) -> TokenStream {
     let ast: DeriveInput = syn::parse(input).expect("Couldn't parse for getters");
     let params = GenParams {
         attribute_name: "get_mut",
-        fn_name_prefix: "",
-        fn_name_suffix: "_mut",
+        fn_name_prefix: None,
+        fn_name_suffix: Some("_mut"),
         global_attr: parse::global_attr(&ast.attrs, "get_mut"),
     };
 
@@ -106,8 +106,8 @@ pub fn setters(input: TokenStream) -> TokenStream {
     let ast: DeriveInput = syn::parse(input).expect("Couldn't parse for setters");
     let params = GenParams {
         attribute_name: "set",
-        fn_name_prefix: "set_",
-        fn_name_suffix: "",
+        fn_name_prefix: Some("set_"),
+        fn_name_suffix: None,
         global_attr: parse::global_attr(&ast.attrs, "set"),
     };
 

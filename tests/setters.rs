@@ -9,10 +9,10 @@ pub struct Plain {
 }
 
 #[derive(Setters, Default)]
-#[set(prefix = "ref_set_")]
+#[set(prefix = "ref_set")]
 pub struct Custom {
     field: usize,
-    #[set(prefix = "custom_set_", suffix = "_test")]
+    #[set(prefix = "custom_set", suffix = "test")]
     second_field: usize,
 }
 
