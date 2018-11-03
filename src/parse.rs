@@ -7,6 +7,7 @@ pub fn meta(meta: &Meta, params: &GenParams) -> MetaAttributes {
         prefix: params.fn_name_prefix.map(ToOwned::to_owned),
         suffix: params.fn_name_suffix.map(ToOwned::to_owned),
         mutable: false,
+        copy: false,
     };
     match meta {
         Meta::NameValue(MetaNameValue {
@@ -33,22 +34,26 @@ pub fn parse_nested_meta(nested_meta: &NestedMeta, attributes: &mut MetaAttribut
             ..
         })) => match ident.to_string().as_ref() {
             "vis" => attributes.vis = Some(s.value()),
-            "prefix" => attributes.prefix = {
-                let value = s.value();
-                if value.is_empty() {
-                    Some(s.value())
-                } else {
-                    Some(format!("{}_", s.value()))
+            "prefix" => {
+                attributes.prefix = {
+                    let value = s.value();
+                    if value.is_empty() {
+                        Some(s.value())
+                    } else {
+                        Some(format!("{}_", s.value()))
+                    }
                 }
-            },
-            "suffix" => attributes.suffix = {
-                let value = s.value();
-                if value.is_empty() {
-                    Some(s.value())
-                } else {
-                    Some(format!("_{}", s.value()))
+            }
+            "suffix" => {
+                attributes.suffix = {
+                    let value = s.value();
+                    if value.is_empty() {
+                        Some(s.value())
+                    } else {
+                        Some(format!("_{}", s.value()))
+                    }
                 }
-            },
+            }
             _ => (),
         },
         NestedMeta::Meta(Meta::Word(ident)) => match ident.to_string().as_ref() {
@@ -57,6 +62,9 @@ pub fn parse_nested_meta(nested_meta: &NestedMeta, attributes: &mut MetaAttribut
                     attributes.suffix = Some("_mut".to_owned());
                 }
                 attributes.mutable = true;
+            }
+            "copy" => {
+                attributes.copy = true;
             }
             _ => (),
         },

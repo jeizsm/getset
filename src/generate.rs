@@ -38,7 +38,12 @@ pub fn implement(field: &Field, mode: &GenMode, params: &GenParams) -> TokenStre
                 .vis
                 .map(|vis| syn::parse_str(vis.as_ref()).expect("visibility"));
             let fn_name = Ident::new(
-                &format!("{}{}{}", attributes.prefix.unwrap_or_default(), field_name, attributes.suffix.unwrap_or_default()),
+                &format!(
+                    "{}{}{}",
+                    attributes.prefix.unwrap_or_default(),
+                    field_name,
+                    attributes.suffix.unwrap_or_default()
+                ),
                 Span::call_site(),
             );
             match mode {
@@ -48,6 +53,8 @@ pub fn implement(field: &Field, mode: &GenMode, params: &GenParams) -> TokenStre
                             quote! { (&mut self) -> &mut #ty },
                             quote! { &mut self.#field_name },
                         )
+                    } else if attributes.copy {
+                        (quote! { (&self) -> #ty }, quote! { self.#field_name })
                     } else {
                         (quote! { (&self) -> &#ty }, quote! { &self.#field_name })
                     };
