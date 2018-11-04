@@ -67,12 +67,28 @@ pub fn implement(field: &Field, mode: &GenMode, params: &GenParams) -> TokenStre
                     }
                 }
                 GenMode::Set => {
+                    let (fn_type, fn_body) = if attributes.consume {
+                        (
+                            quote! { (mut self, val: #ty) -> Self },
+                            quote! {
+                                self.#field_name = val;
+                                self
+                            },
+                        )
+                    } else {
+                        (
+                            quote! { (&mut self, val: #ty) -> &mut Self },
+                            quote! {
+                                self.#field_name = val;
+                                self
+                            },
+                        )
+                    };
                     quote! {
                         #(#doc)*
                         #[inline(always)]
-                        #visibility fn #fn_name(&mut self, val: #ty) -> &mut Self {
-                            self.#field_name = val;
-                            self
+                        #visibility fn #fn_name#fn_type {
+                            #fn_body
                         }
                     }
                 }

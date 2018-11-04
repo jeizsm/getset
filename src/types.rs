@@ -7,6 +7,7 @@ pub struct MetaAttributes {
     pub suffix: Option<String>,
     pub mutable: bool,
     pub copy: bool,
+    pub consume: bool,
 }
 
 pub struct GenParams {

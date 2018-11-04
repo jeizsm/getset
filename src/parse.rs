@@ -8,6 +8,7 @@ pub fn meta(meta: &Meta, params: &GenParams) -> MetaAttributes {
         suffix: params.fn_name_suffix.map(ToOwned::to_owned),
         mutable: false,
         copy: false,
+        consume: false,
     };
     match meta {
         Meta::NameValue(MetaNameValue {
@@ -65,6 +66,12 @@ pub fn parse_nested_meta(nested_meta: &NestedMeta, attributes: &mut MetaAttribut
             }
             "copy" => {
                 attributes.copy = true;
+            }
+            "consume" => {
+                if attributes.suffix.is_none() {
+                    attributes.prefix = Some("consume_set_".to_owned());
+                }
+                attributes.consume = true;
             }
             _ => (),
         },
