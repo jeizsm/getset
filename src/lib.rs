@@ -11,8 +11,8 @@ These macros are not intended to be used on fields which require custom logic in
 #[macro_use]
 extern crate getset;
 
-#[derive(Getters, Setters, Default)]
-#[get(vis = "pub")] #[get(vis = "pub", mutable)] #[set(vis = "pub", consume)] #[set(vis = "pub")]
+#[derive(Getters, Setters, New, Default)]
+#[get(vis = "pub")] #[get(vis = "pub", mutable)] #[set(vis = "pub", consume)] #[set(vis = "pub")] #[new(vis = "pub")]
 pub struct Foo<T> where T: Copy + Clone + Default {
     /// Doc comments are supported!
     /// Multiline, even.
@@ -21,16 +21,18 @@ pub struct Foo<T> where T: Copy + Clone + Default {
 
     /// Doc comments are supported!
     /// Multiline, even.
-    public: T,
+    public: Option<T>,
 }
 
 fn main() {
-    let mut foo: Foo<i32> = Foo::default().consume_set_public(1);
-    foo.set_private(1);
-    foo.set_public(2);
+    let mut foo: Foo<i32> = Foo::new(1).consume_set_public(3);
+    assert_eq!(foo.private(), 1);
+    assert_eq!(*foo.public(), Some(3));
+    foo.set_private(3);
+    foo.set_public(4);
     (*foo.private_mut()) += 1;
-    assert_eq!(foo.private(), 2);
-    assert_eq!(*foo.public(), 2);
+    assert_eq!(foo.private(), 4);
+    assert_eq!(*foo.public(), Some(4));
 }
 ```
 ```compile_fail
@@ -65,7 +67,7 @@ mod types;
 
 use crate::types::{GenMode, GenParams};
 use proc_macro::TokenStream;
-use syn::{DataStruct, DeriveInput};
+use syn::{DataStruct, DeriveInput, Visibility};
 
 #[proc_macro_derive(Getters, attributes(get))]
 pub fn getters(input: TokenStream) -> TokenStream {
@@ -118,6 +120,61 @@ pub fn setters(input: TokenStream) -> TokenStream {
 
     // Return the generated impl
     gen.into()
+}
+
+#[proc_macro_derive(New, attributes(new))]
+pub fn new(input: TokenStream) -> TokenStream {
+    // Parse the string representation
+    let ast: DeriveInput = syn::parse2(input.into()).expect("Couldn't parse for setters");
+
+    // Build the impl
+    let gen = produce_new(&ast);
+
+    // Return the generated impl
+    gen.into()
+}
+
+
+fn produce_new(ast: &DeriveInput) -> proc_macro2::TokenStream {
+    let name = &ast.ident;
+    let generics = &ast.generics;
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
+    // Is it a struct?
+    if let syn::Data::Struct(DataStruct { ref fields, .. }) = ast.data {
+        let generated = fields
+            .iter()
+            .map(|f| generate::implement_new(f))
+            .collect::<Vec<_>>();
+
+        let initialize = generated.iter().map(|(a, _)| a).collect::<Vec<_>>();
+        let struct_initialize = generated.iter().map(|(_, a)| a).collect::<Vec<_>>();
+        let global_attr = parse::global_attr(&ast.attrs, "new");
+        let attr = global_attr.first().expect("new attribute").clone();
+        let params = GenParams {
+            attribute_name: "new",
+            fn_name_prefix: None,
+            fn_name_suffix: None,
+            global_attr: global_attr,
+        };
+
+        let attributes = parse::meta(&attr, &params);
+        let visibility: Option<Visibility> = attributes
+            .vis
+            .map(|vis| syn::parse_str(vis.as_ref()).expect("visibility"));
+        quote! {
+            impl #impl_generics #name #ty_generics #where_clause {
+                #visibility fn new(#(#initialize)*) -> Self {
+                    Self {
+                        #(#struct_initialize)*
+                    }
+                }
+            }
+        }
+    } else {
+        // Nope. This is an Enum. We cannot handle these!
+        panic!("#[derive(New)] is only defined for structs, not for enums!");
+    }
 }
 
 fn produce(ast: &DeriveInput, mode: &GenMode, params: &GenParams) -> proc_macro2::TokenStream {

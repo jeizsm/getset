@@ -118,3 +118,21 @@ pub fn implement(field: &Field, mode: &GenMode, params: &GenParams) -> TokenStre
         #(#token_stream)*
     }
 }
+
+pub fn implement_new(field: &Field) -> (TokenStream, TokenStream) {
+    let field_name = field
+        .ident
+        .as_ref()
+        .expect("Expected the field to have a name");
+    let (optional, ty) = parse::parse_type(&field.ty);
+    if optional {
+        (quote!{}, {
+            quote!{#field_name: None,}
+        })
+    } else {
+        (
+            quote!{#field_name: impl Into<#ty>,},
+            quote!{#field_name: #field_name.into(),},
+        )
+    }
+}
