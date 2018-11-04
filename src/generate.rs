@@ -69,17 +69,17 @@ pub fn implement(field: &Field, mode: &GenMode, params: &GenParams) -> TokenStre
                 GenMode::Set => {
                     let (fn_type, fn_body) = if attributes.consume {
                         (
-                            quote! { (mut self, val: #ty) -> Self },
+                            quote! { (mut self, val: impl Into<#ty>) -> Self },
                             quote! {
-                                self.#field_name = val;
+                                self.#field_name = val.into();
                                 self
                             },
                         )
                     } else {
                         (
-                            quote! { (&mut self, val: #ty) -> &mut Self },
+                            quote! { (&mut self, val: impl Into<#ty>) -> &mut Self },
                             quote! {
-                                self.#field_name = val;
+                                self.#field_name = val.into();
                                 self
                             },
                         )

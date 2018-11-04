@@ -4,21 +4,21 @@ extern crate getset;
 #[derive(MutGetters)]
 #[get_mut]
 pub struct Deprecated {
-    field: usize,
+    field: i32,
 }
 
 #[derive(Getters)]
 #[get(mutable)]
 pub struct Plain {
-    field: usize,
+    field: i32,
 }
 
 #[derive(Getters)]
 #[get(suffix = "", mutable)]
 pub struct Custom {
-    field: usize,
+    field: i32,
     #[get(mutable, prefix = "get", suffix = "test")]
-    second_field: usize,
+    second_field: i32,
 }
 
 #[test]

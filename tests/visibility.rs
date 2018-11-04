@@ -13,26 +13,26 @@ mod submodule {
             pub struct Plain {
                 /// A doc comment.
                 /// Multiple lines, even.
-                private_accessible: usize,
+                private_accessible: i32,
 
                 /// A doc comment.
                 #[get = "pub"]
                 #[set = "pub"]
-                public_accessible: usize,
+                public_accessible: i32,
                 /// A doc comment.
                 #[get = "pub(crate)"]
                 #[set = "pub(crate)"]
-                crate_accessible: usize,
+                crate_accessible: i32,
 
                 /// A doc comment.
                 #[get(vis = "pub(super)")]
                 #[set(vis = "pub(super)")]
-                super_accessible: usize,
+                super_accessible: i32,
 
                 /// A doc comment.
                 #[get(vis = "pub(in crate::submodule)")]
                 #[set(vis = "pub(in crate::submodule)")]
-                scope_accessible: usize,
+                scope_accessible: i32,
             }
 
             impl Default for Plain {

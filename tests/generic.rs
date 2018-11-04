@@ -10,7 +10,7 @@ pub struct Generic<T: Copy + Clone + Default> {
 
 #[test]
 fn test_generic_field() {
-    let mut val = Generic::default();
+    let mut val: Generic<i32> = Generic::default();
     val.field();
     val.set_field(1);
 }
@@ -27,7 +27,7 @@ where
 
 #[test]
 fn test_where() {
-    let mut val = Where::default();
+    let mut val: Where<i32> = Where::default();
     val.field();
     val.set_field(1);
 }

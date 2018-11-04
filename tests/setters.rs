@@ -4,16 +4,16 @@ extern crate getset;
 #[derive(Setters, Default)]
 #[set]
 pub struct Plain {
-    field: usize,
-    second_field: usize,
+    field: i32,
+    second_field: i32,
 }
 
 #[derive(Setters, Default)]
 #[set(prefix = "ref_set")]
 pub struct Custom {
-    field: usize,
+    field: i32,
     #[set(prefix = "custom_set", suffix = "test")]
-    second_field: usize,
+    second_field: i32,
 }
 
 #[test]

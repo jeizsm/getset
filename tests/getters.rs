@@ -4,15 +4,15 @@ extern crate getset;
 #[derive(Getters)]
 #[get]
 pub struct Plain {
-    field: usize,
+    field: i32,
 }
 
 #[derive(Getters)]
 #[get(prefix = "get")]
 pub struct Custom {
-    field: usize,
+    field: i32,
     #[get(prefix = "get", suffix = "test")]
-    second_field: usize,
+    second_field: i32,
 }
 
 #[test]
