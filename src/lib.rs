@@ -12,7 +12,7 @@ These macros are not intended to be used on fields which require custom logic in
 extern crate getset;
 
 #[derive(Getters, Setters, Default)]
-#[get = "pub"] #[set = "pub"] #[get(vis = "pub", mutable)]
+#[get(vis = "pub")] #[get(vis = "pub", mutable)] #[set(vis = "pub", consume)] #[set(vis = "pub")]
 pub struct Foo<T> where T: Copy + Clone + Default {
     /// Doc comments are supported!
     /// Multiline, even.
@@ -25,7 +25,7 @@ pub struct Foo<T> where T: Copy + Clone + Default {
 }
 
 fn main() {
-    let mut foo: Foo<i32> = Foo::default();
+    let mut foo: Foo<i32> = Foo::default().consume_set_public(1);
     foo.set_private(1);
     foo.set_public(2);
     (*foo.private_mut()) += 1;
