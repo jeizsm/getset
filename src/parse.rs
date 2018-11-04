@@ -96,3 +96,19 @@ pub fn global_attr(attrs: &[syn::Attribute], attribute_name: &str) -> Vec<Meta> 
             }
         }).collect()
 }
+
+
+pub fn parse_type(ty: &Type) -> (bool, &Type) {
+    if let Type::Path(ref path_type) = ty {
+        let segment = &path_type.path.segments[0];
+        if segment.ident == "Option" {
+            if let PathArguments::AngleBracketed(ref args) = segment.arguments {
+                let arg = &args.args[0];
+                if let GenericArgument::Type(ty) = arg {
+                    return (true, ty);
+                }
+            }
+        }
+    }
+    (false, ty)
+}

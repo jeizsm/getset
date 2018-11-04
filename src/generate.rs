@@ -67,11 +67,17 @@ pub fn implement(field: &Field, mode: &GenMode, params: &GenParams) -> TokenStre
                     }
                 }
                 GenMode::Set => {
+                    let (is_optional, ty) = parse::parse_type(&ty);
+                    let field_set = if is_optional {
+                        quote! { Some(val.into()) }
+                    } else {
+                        quote! { val.into() }
+                    };
                     let (fn_type, fn_body) = if attributes.consume {
                         (
                             quote! { (mut self, val: impl Into<#ty>) -> Self },
                             quote! {
-                                self.#field_name = val.into();
+                                self.#field_name = #field_set;
                                 self
                             },
                         )
@@ -79,7 +85,7 @@ pub fn implement(field: &Field, mode: &GenMode, params: &GenParams) -> TokenStre
                         (
                             quote! { (&mut self, val: impl Into<#ty>) -> &mut Self },
                             quote! {
-                                self.#field_name = val.into();
+                                self.#field_name = #field_set;
                                 self
                             },
                         )
