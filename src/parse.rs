@@ -9,6 +9,7 @@ pub fn meta(meta: &Meta, params: &GenParams) -> MetaAttributes {
         mutable: false,
         copy: false,
         consume: false,
+        optional: false,
     };
     match meta {
         Meta::NameValue(MetaNameValue {
@@ -72,6 +73,9 @@ pub fn parse_nested_meta(nested_meta: &NestedMeta, attributes: &mut MetaAttribut
                     attributes.prefix = Some("consume_set_".to_owned());
                 }
                 attributes.consume = true;
+            }
+            "optional" => {
+                attributes.optional = true;
             }
             _ => (),
         },

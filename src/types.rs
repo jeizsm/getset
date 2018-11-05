@@ -8,6 +8,7 @@ pub struct MetaAttributes {
     pub mutable: bool,
     pub copy: bool,
     pub consume: bool,
+    pub optional: bool,
 }
 
 pub struct GenParams {

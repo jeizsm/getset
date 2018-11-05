@@ -48,7 +48,7 @@ pub fn implement(field: &Field, mode: &GenMode, params: &GenParams) -> TokenStre
             );
             match mode {
                 GenMode::Get => {
-                    let (fn_type, fn_body) = if attributes.mutable {
+                    let (fn_signature, fn_body) = if attributes.mutable {
                         (
                             quote! { (&mut self) -> &mut #ty },
                             quote! { &mut self.#field_name },
@@ -61,21 +61,25 @@ pub fn implement(field: &Field, mode: &GenMode, params: &GenParams) -> TokenStre
                     quote! {
                         #(#doc)*
                         #[inline(always)]
-                        #visibility fn #fn_name#fn_type {
+                        #visibility fn #fn_name#fn_signature {
                             #fn_body
                         }
                     }
                 }
                 GenMode::Set => {
-                    let (is_optional, ty) = parse::parse_type(&ty);
-                    let field_set = if is_optional {
-                        quote! { Some(val.into()) }
-                    } else {
-                        quote! { val.into() }
-                    };
-                    let (fn_type, fn_body) = if attributes.consume {
+                    let (is_optional, optional_type) = parse::parse_type(&ty);
+                    let (field_set, generic, ty) = if attributes.optional && is_optional {
                         (
-                            quote! { (mut self, val: impl Into<#ty>) -> Self },
+                            quote! { val.map(Into::into) },
+                            quote! { __T: Into<#optional_type> },
+                            quote! { Option<__T> }
+                        )
+                    } else {
+                        (quote! { val.into() }, quote! { __T: Into<#ty> }, quote! { __T })
+                    };
+                    let (fn_signature, fn_body) = if attributes.consume {
+                        (
+                            quote! { (mut self, val: #ty) -> Self },
                             quote! {
                                 self.#field_name = #field_set;
                                 self
@@ -83,7 +87,7 @@ pub fn implement(field: &Field, mode: &GenMode, params: &GenParams) -> TokenStre
                         )
                     } else {
                         (
-                            quote! { (&mut self, val: impl Into<#ty>) -> &mut Self },
+                            quote! { (&mut self, val: #ty) -> &mut Self },
                             quote! {
                                 self.#field_name = #field_set;
                                 self
@@ -93,7 +97,8 @@ pub fn implement(field: &Field, mode: &GenMode, params: &GenParams) -> TokenStre
                     quote! {
                         #(#doc)*
                         #[inline(always)]
-                        #visibility fn #fn_name#fn_type {
+                        #visibility fn #fn_name<#generic>#fn_signature
+                        {
                             #fn_body
                         }
                     }
