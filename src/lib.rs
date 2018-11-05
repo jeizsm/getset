@@ -134,7 +134,6 @@ pub fn new(input: TokenStream) -> TokenStream {
     gen.into()
 }
 
-
 fn produce_new(ast: &DeriveInput) -> proc_macro2::TokenStream {
     let name = &ast.ident;
     let generics = &ast.generics;
