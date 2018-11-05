@@ -12,7 +12,11 @@ These macros are not intended to be used on fields which require custom logic in
 extern crate getset;
 
 #[derive(Getters, Setters, New, Default)]
-#[get(vis = "pub")] #[get(vis = "pub", mutable)] #[set(vis = "pub", consume)] #[set(vis = "pub")] #[new(vis = "pub")]
+#[get(vis = "pub")]
+#[get(vis = "pub", mutable)]
+#[set(vis = "pub", consume)]
+#[set(vis = "pub")]
+#[new(vis = "pub")]
 pub struct Foo<T> where T: Copy + Clone + Default {
     /// Doc comments are supported!
     /// Multiline, even.
@@ -22,17 +26,26 @@ pub struct Foo<T> where T: Copy + Clone + Default {
     /// Doc comments are supported!
     /// Multiline, even.
     public: Option<T>,
+
+    #[set(optional)]
+    optional: Option<String>,
 }
 
 fn main() {
-    let mut foo: Foo<i32> = Foo::new(1).consume_set_public(3);
+    let mut foo: Foo<i64> = Foo::new(1).consume_set_public(3);
     assert_eq!(foo.private(), 1);
     assert_eq!(*foo.public(), Some(3));
     foo.set_private(3);
-    foo.set_public(4);
     (*foo.private_mut()) += 1;
     assert_eq!(foo.private(), 4);
+    foo.set_public(4);
     assert_eq!(*foo.public(), Some(4));
+    foo.set_public(None);
+    assert_eq!(*foo.public(), None);
+    foo.set_optional(Some("test"));
+    assert_eq!(foo.optional(), &Some("test".to_string()));
+    foo.set_optional(None::<&str>);
+    assert_eq!(*foo.optional(), None);
 }
 ```
 ```compile_fail

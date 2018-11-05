@@ -16,6 +16,8 @@ fn test_optional_setters() {
     assert_eq!(Some(1), val.field);
     val.set_field(None::<i32>);
     assert_eq!(None, val.field);
+    val.set_field(Some(1i8));
+    assert_eq!(Some(1), val.field);
 }
 
 
